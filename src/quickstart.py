@@ -9,15 +9,12 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 # If modifying these scopes, delete the file token.json.
-SCOPES = ['https://www.googleapis.com/auth/documents.readonly']
-
-# The ID of a sample document.
-DOCUMENT_ID = '195j9eDD3ccgjQRttHhJPymLJUCOUjs-jmwTrekvdjFE'
+SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
 
 def main():
-    """Shows basic usage of the Docs API.
-    Prints the title of a sample document.
+    """Shows basic usage of the Gmail API.
+    Lists the user's Gmail labels.
     """
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
@@ -38,14 +35,21 @@ def main():
             token.write(creds.to_json())
 
     try:
-        service = build('docs', 'v1', credentials=creds)
+        # Call the Gmail API
+        service = build('gmail', 'v1', credentials=creds)
+        results = service.users().labels().list(userId='me').execute()
+        labels = results.get('labels', [])
 
-        # Retrieve the documents contents from the Docs service.
-        document = service.documents().get(documentId=DOCUMENT_ID).execute()
+        if not labels:
+            print('No labels found.')
+            return
+        print('Labels:')
+        for label in labels:
+            print(label['name'])
 
-        print('The title of the document is: {}'.format(document.get('title')))
-    except HttpError as err:
-        print(err)
+    except HttpError as error:
+        # TODO(developer) - Handle errors from gmail API.
+        print(f'An error occurred: {error}')
 
 
 if __name__ == '__main__':
